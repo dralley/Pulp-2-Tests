@@ -34,10 +34,8 @@ from pulp_2_tests.constants import (
     MODULE_ARTIFACT_RPM_DATA_2,
     MODULE_DATA_2,
     MODULE_ERRATA_RPM_DATA,
-    MODULE_FIXTURES_DUCK_4_STREAM,
-    MODULE_FIXTURES_DUCK_5_STREAM,
-    MODULE_FIXTURES_DUCK_6_STREAM,
     MODULE_FIXTURES_ERRATA,
+    MODULE_FIXTURES_MODULE_DEFAULT_COPY_DATA,
     MODULE_FIXTURES_PACKAGES,
     MODULE_FIXTURES_PACKAGE_STREAM,
     RPM_DATA,
@@ -419,12 +417,12 @@ class CopyModularDefaultsTestCase(unittest.TestCase):
         """Test copy of modulemd_defaults in RPM repository."""
         self.assertEqual(
             repo['content_unit_counts']['modulemd_defaults'],
-            MODULE_FIXTURES_PACKAGE_STREAM['module_defaults'],
+            MODULE_FIXTURES_MODULE_DEFAULT_COPY_DATA['module_defaults'],
             repo['content_unit_counts']
         )
         self.assertEqual(
             repo['total_repository_units'],
-            MODULE_FIXTURES_PACKAGE_STREAM['module_defaults'],
+            MODULE_FIXTURES_MODULE_DEFAULT_COPY_DATA['module_defaults'],
             repo['total_repository_units']
         )
         self.assertNotIn('rpm', repo['content_unit_counts'])
@@ -538,12 +536,6 @@ class CopyModulesTestCase(unittest.TestCase):
             raise unittest.SkipTest('https://pulp.plan.io/issues/4405')
         cls.client = api.Client(cls.cfg, api.json_handler)
         cls.COPY_MODULES_LIST = [MODULE_FIXTURES_PACKAGE_STREAM]
-        if cls.cfg.pulp_version >= Version('2.20'):
-            if not selectors.bug_is_fixed(4962, cls.cfg.pulp_version):
-                raise unittest.SkipTest('https://pulp.plan.io/issues/4962')
-            cls.COPY_MODULES_LIST.append(MODULE_FIXTURES_DUCK_4_STREAM)
-            cls.COPY_MODULES_LIST.append(MODULE_FIXTURES_DUCK_5_STREAM)
-            cls.COPY_MODULES_LIST.append(MODULE_FIXTURES_DUCK_6_STREAM)
 
     def test_copy_modulemd_recursive_nonconservative_no_old_rpm(self):
         """Test modular copy using override_config and no old RPMs."""
@@ -552,18 +544,18 @@ class CopyModulesTestCase(unittest.TestCase):
                 repo = self.copy_units(True, False, False, module)
                 self.check_module_rpm_total_units(repo, module)
 
-    def test_copy_modulemd_recursive_nonconservative_old_rpm(self):
-        """Test modular copy using override_config and old RPMs."""
-        for module in self.COPY_MODULES_LIST:
-            with self.subTest(modules=module['name']):
-                repo = self.copy_units(True, False, True, module)
-                self.check_module_rpm_total_units(repo, module)
-
     def test_copy_modulemd_recursive_conservative_no_old_rpm(self):
         """Test modular copy using override_config and no old RPMs."""
         for module in self.COPY_MODULES_LIST:
             with self.subTest(modules=module['name']):
                 repo = self.copy_units(True, True, False, module)
+                self.check_module_rpm_total_units(repo, module)
+
+    def test_copy_modulemd_recursive_nonconservative_old_rpm(self):
+        """Test modular copy using override_config and old RPMs."""
+        for module in self.COPY_MODULES_LIST:
+            with self.subTest(modules=module['name']):
+                repo = self.copy_units(True, False, True, module)
                 self.check_module_rpm_total_units(repo, module)
 
     def test_copy_modulemd_nonrecursive_conservative_old_rpm(self):
@@ -588,16 +580,17 @@ class CopyModulesTestCase(unittest.TestCase):
         #   module or module's RPM dependencies
         # - Total units (Module and RPMs) copied
         checks = [
-            (repo['content_unit_counts']['modulemd'], 1),
-            (repo['content_unit_counts']['rpm'], module['rpm_count']),
+            (repo['content_unit_counts'].get('modulemd'), module['module_count']),
+            (repo['content_unit_counts'].get('rpm'), module['rpm_count']),
+            (repo['content_unit_counts'].get('modulemd_defaults'), module['module_defaults']),
             (repo['total_repository_units'], module['total_available_units']),
         ]
 
         # for loop to give a breakout for any and each individual failures
         # Allows easier troubleshooting to pin point libsolv problems
-        for check in checks:
+        for idx, check in enumerate(checks):
             with self.subTest(check=check):
-                self.assertEqual(check[0], check[1], module)
+                self.assertEqual(check[0], check[1], 'module: {} check: {}'.format(module, idx))
 
     def copy_units(self, recursive, recursive_conservative, old_rpm, module):
         """Create two repositories and copy content between them."""
@@ -1496,21 +1489,20 @@ class ModularErrataCopyTestCase(unittest.TestCase):
         self.assertEqual(len(versions), 2, versions)
 
         self.assertEqual(
-            repo['content_unit_counts']['erratum'],
+            repo['content_unit_counts'].get('erratum'),
             MODULE_FIXTURES_ERRATA['errata_count'],
             repo['content_unit_counts']
         )
 
         self.assertEqual(
-            repo['content_unit_counts']['modulemd'],
+            repo['content_unit_counts'].get('modulemd'),
             MODULE_FIXTURES_ERRATA['modules_count'],
             repo['content_unit_counts']
         )
 
         if self.cfg.pulp_version >= Version('2.21'):
-
             self.assertEqual(
-                repo['content_unit_counts']['modulemd_defaults'],
+                repo['content_unit_counts'].get('modulemd_defaults'),
                 MODULE_FIXTURES_ERRATA['module_defaults_count'],
                 repo['content_unit_counts']
             )
@@ -1531,13 +1523,13 @@ class ModularErrataCopyTestCase(unittest.TestCase):
     def make_assertions_nodependency(self, repo):
         """Make assertions over a repo without an older version RPM present."""
         self.assertEqual(
-            repo['content_unit_counts']['erratum'],
+            repo['content_unit_counts'].get('erratum'),
             MODULE_FIXTURES_ERRATA['errata_count'],
             repo['content_unit_counts']
         )
 
         self.assertEqual(
-            repo['content_unit_counts']['modulemd'],
+            repo['content_unit_counts'].get('modulemd'),
             MODULE_FIXTURES_ERRATA['modules_count'],
             repo['content_unit_counts']
         )
@@ -1545,7 +1537,7 @@ class ModularErrataCopyTestCase(unittest.TestCase):
         if self.cfg.pulp_version >= Version('2.21'):
 
             self.assertEqual(
-                repo['content_unit_counts']['modulemd_defaults'],
+                repo['content_unit_counts'].get('modulemd_defaults'),
                 MODULE_FIXTURES_ERRATA['module_defaults_count'],
                 repo['content_unit_counts']
             )

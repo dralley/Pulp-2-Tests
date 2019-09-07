@@ -916,13 +916,24 @@ MODULE_FIXTURES_PACKAGE_STREAM = MappingProxyType(
         'stream': '0.71',
         'new_stream': '5.21',
         'rpm_count': 4,
-        'total_available_units': 5,
-        'module_defaults': 3,
+        'total_available_units': 6,
+        'module_defaults': 1,
+        'module_count': 1,
         'feed': RPM_WITH_MODULES_FEED_URL,
         'old': RPM_WITH_OLD_VERSION_URL,
     }
 )
 """The name and the stream of the package listed in `modules.yaml`_.
+
+.. _modules.yaml: https://github.com/PulpQE/pulp-fixtures/blob/master/rpm/assets/modules.yaml
+"""
+
+MODULE_FIXTURES_MODULE_DEFAULT_COPY_DATA = MappingProxyType(
+    {
+        'module_defaults': 3,
+    }
+)
+"""The module defaults present in `modules.yaml`_.
 
 .. _modules.yaml: https://github.com/PulpQE/pulp-fixtures/blob/master/rpm/assets/modules.yaml
 """
@@ -933,8 +944,9 @@ MODULE_FIXTURES_DUCK_4_STREAM = MappingProxyType(
         'stream': '4',
         'new_stream': '4',
         'rpm_count': 1,
-        'total_available_units': 2,
+        'total_available_units': 6,
         'module_defaults': 1,
+        'module_count': 4,
         'feed': RPM_WITH_MODULES_FEED_URL,
         'old': RPM_WITH_OLD_VERSION_DUCK_URL,
     }
@@ -950,8 +962,9 @@ MODULE_FIXTURES_DUCK_5_STREAM = MappingProxyType(
         'stream': '5',
         'new_stream': '5',
         'rpm_count': 1,
-        'total_available_units': 2,
+        'total_available_units': 6,
         'module_defaults': 1,
+        'module_count': 4,
         'feed': RPM_WITH_MODULES_FEED_URL,
         'old': RPM_WITH_OLD_VERSION_DUCK_URL,
     }
@@ -967,8 +980,9 @@ MODULE_FIXTURES_DUCK_6_STREAM = MappingProxyType(
         'stream': '6',
         'new_stream': '6',
         'rpm_count': 2,
-        'total_available_units': 3,
+        'total_available_units': 7,
         'module_defaults': 1,
+        'module_count': 4,
         'feed': RPM_WITH_MODULES_FEED_URL,
         'old': RPM_WITH_OLD_VERSION_DUCK_URL,
     }
